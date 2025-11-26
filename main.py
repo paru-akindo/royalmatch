@@ -8,7 +8,7 @@ URL = f"https://api.jsonbin.io/v3/b/{BIN_ID}"
 
 headers = {"X-Master-Key": API_KEY, "Content-Type": "application/json"}
 
-st.title("カード交換サイト")
+st.title("王様カード交換")
 
 # データ取得
 res = requests.get(URL, headers=headers)
