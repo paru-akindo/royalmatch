@@ -17,11 +17,15 @@ data = res.json()["record"]
 st.subheader("欲しいカードを登録")
 user = st.text_input("ユーザー名")
 
-# ジャンル選択
-genres = sorted(set([c["genre"] for c in data["cards"]]))
+# ジャンル選択（順番保持）
+genres = []
+for c in data["cards"]:
+    if c["genre"] not in genres:
+        genres.append(c["genre"])
+
 genre = st.selectbox("ジャンルを選択", genres)
 
-# 選んだジャンルのカード一覧から選択
+# 選んだジャンルのカード一覧から選択（順番保持）
 cards_in_genre = [c["name"] for c in data["cards"] if c["genre"] == genre]
 card_name = st.selectbox("カードを選択", cards_in_genre)
 
@@ -31,7 +35,7 @@ if st.button("登録"):
     requests.put(URL, headers=headers, json=data)
     st.success("欲しいカードを登録しました！")
 
-# 登録済みリスト表示
+# 登録済みリスト表示（追加順に表示）
 st.subheader("登録済みの欲しいカード")
 for i, trade in enumerate(data["trades"]):
     st.write(f"{trade['user']} さん → {trade['want']['genre']} / {trade['want']['name']}")
