@@ -36,16 +36,24 @@ if st.button("登録"):
     requests.put(URL, headers=headers, json=data)
     st.success("欲しいカードを登録しました！")
 
-# 登録済みリストを表＋削除ボタン付きで表示
+# 登録済みリストを DataFrame で表示
 st.subheader("登録済みの欲しいカード")
 
 if data["trades"]:
+    # 表用データに変換
+    df = pd.DataFrame([
+        {"ユーザー": t["user"], "ジャンル": t["want"]["genre"], "カード名": t["want"]["name"]}
+        for t in data["trades"]
+    ])
+    st.dataframe(df, use_container_width=True)
+
+    # 削除ボタンを各行の右側に配置
     for i, trade in enumerate(data["trades"]):
-        cols = st.columns([3, 1])  # 左に情報、右に削除ボタン
+        cols = st.columns([4, 1])  # 左に情報、右に削除ボタン
         with cols[0]:
             st.write(f"{trade['user']} さん → {trade['want']['genre']} / {trade['want']['name']}")
         with cols[1]:
-            if st.button("削除", key=f"delete_{i}"):
+            if st.button("🗑️ 削除", key=f"delete_{i}"):
                 data["trades"].pop(i)
                 requests.put(URL, headers=headers, json=data)
                 st.success("削除しました！")
