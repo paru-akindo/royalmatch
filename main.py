@@ -16,19 +16,22 @@ data = res.json()["record"]
 
 # 欲しいカード登録フォーム
 st.subheader("欲しいカードを登録")
+
+# ユーザー名は一行
 user = st.text_input("ユーザー名")
 
-# ジャンル選択（順番保持）
-genres = []
-for c in data["cards"]:
-    if c["genre"] not in genres:
-        genres.append(c["genre"])
+# ジャンルとカードを同じ行に並べる
+col1, col2 = st.columns(2)
+with col1:
+    genres = []
+    for c in data["cards"]:
+        if c["genre"] not in genres:
+            genres.append(c["genre"])
+    genre = st.selectbox("ジャンルを選択", genres)
 
-genre = st.selectbox("ジャンルを選択", genres)
-
-# 選んだジャンルのカード一覧から選択（順番保持）
-cards_in_genre = [c["name"] for c in data["cards"] if c["genre"] == genre]
-card_name = st.selectbox("カードを選択", cards_in_genre)
+with col2:
+    cards_in_genre = [c["name"] for c in data["cards"] if c["genre"] == genre]
+    card_name = st.selectbox("カードを選択", cards_in_genre)
 
 if st.button("登録"):
     new_trade = {"user": user, "want": {"genre": genre, "name": card_name}}
@@ -48,18 +51,24 @@ if data["trades"]:
 else:
     st.info("まだ登録はありません。")
 
-# 削除用プルダウン UI
+# 登録済み削除フォーム
 st.subheader("登録済みの欲しいカードを削除")
+
 if data["trades"]:
+    # ユーザー名は一行
     users = sorted(set([t["user"] for t in data["trades"]]))
     selected_user = st.selectbox("ユーザーを選択", users)
 
     user_trades = [t for t in data["trades"] if t["user"] == selected_user]
     genres_for_user = sorted(set([t["want"]["genre"] for t in user_trades]))
-    selected_genre = st.selectbox("ジャンルを選択", genres_for_user)
 
-    cards_for_genre = [t["want"]["name"] for t in user_trades if t["want"]["genre"] == selected_genre]
-    selected_card = st.selectbox("カードを選択", cards_for_genre)
+    # ジャンルとカードを同じ行に並べる
+    col1, col2 = st.columns(2)
+    with col1:
+        selected_genre = st.selectbox("ジャンルを選択", genres_for_user)
+    with col2:
+        cards_for_genre = [t["want"]["name"] for t in user_trades if t["want"]["genre"] == selected_genre]
+        selected_card = st.selectbox("カードを選択", cards_for_genre)
 
     if st.button("🗑️ 削除"):
         data["trades"] = [t for t in data["trades"] if not (
@@ -70,3 +79,5 @@ if data["trades"]:
         requests.put(URL, headers=headers, json=data)
         st.success("削除しました！")
         st.rerun()
+else:
+    st.info("まだ登録はありません。")
