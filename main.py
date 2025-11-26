@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-import pandas as pd
 
 API_KEY = "$2a$10$wkVzPCcsW64wR96r26OsI.HDd3ijLveJn6sxJoSjfzByIRyODPCHq"
 BIN_ID = "6926b417ae596e708f71ae61"
@@ -35,29 +34,35 @@ if st.button("登録"):
     data["trades"].append(new_trade)
     requests.put(URL, headers=headers, json=data)
     st.success("欲しいカードを登録しました！")
-    st.rerun()  # 登録後に即更新
+    st.rerun()
 
-# 登録済みリストを DataFrame で表示
-st.subheader("登録済みの欲しいカード")
+# 登録済み削除フォーム
+st.subheader("登録済みの欲しいカードを削除")
 
 if data["trades"]:
-    # 表用データに変換
-    df = pd.DataFrame([
-        {"ユーザー": t["user"], "ジャンル": t["want"]["genre"], "カード名": t["want"]["name"]}
-        for t in data["trades"]
-    ])
-    st.dataframe(df, use_container_width=True)
+    # 登録済みユーザー一覧
+    users = sorted(set([t["user"] for t in data["trades"]]))
+    selected_user = st.selectbox("ユーザーを選択", users)
 
-    # 削除ボタンを各行の右側に配置
-    for i, trade in enumerate(data["trades"]):
-        cols = st.columns([4, 1])  # 左に情報、右に削除ボタン
-        with cols[0]:
-            st.write(f"{trade['user']} さん → {trade['want']['genre']} / {trade['want']['name']}")
-        with cols[1]:
-            if st.button("🗑️ 削除", key=f"delete_{i}"):
-                data["trades"].pop(i)
-                requests.put(URL, headers=headers, json=data)
-                st.success("削除しました！")
-                st.rerun()  # 削除後に即更新
+    # 選択したユーザーのジャンル一覧
+    user_trades = [t for t in data["trades"] if t["user"] == selected_user]
+    genres_for_user = sorted(set([t["want"]["genre"] for t in user_trades]))
+    selected_genre = st.selectbox("ジャンルを選択", genres_for_user)
+
+    # 選択したジャンルのカード一覧
+    cards_for_genre = [t["want"]["name"] for t in user_trades if t["want"]["genre"] == selected_genre]
+    selected_card = st.selectbox("カードを選択", cards_for_genre)
+
+    # 削除ボタン
+    if st.button("🗑️ 削除"):
+        # 該当の trade を削除
+        data["trades"] = [t for t in data["trades"] if not (
+            t["user"] == selected_user and 
+            t["want"]["genre"] == selected_genre and 
+            t["want"]["name"] == selected_card
+        )]
+        requests.put(URL, headers=headers, json=data)
+        st.success("削除しました！")
+        st.rerun()
 else:
     st.info("まだ登録はありません。")
