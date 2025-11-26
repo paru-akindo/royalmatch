@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import pandas as pd
 
 API_KEY = "$2a$10$wkVzPCcsW64wR96r26OsI.HDd3ijLveJn6sxJoSjfzByIRyODPCHq"
 BIN_ID = "6926b417ae596e708f71ae61"
@@ -35,12 +36,19 @@ if st.button("登録"):
     requests.put(URL, headers=headers, json=data)
     st.success("欲しいカードを登録しました！")
 
-# 登録済みリスト表示（追加順に表示）
+# 登録済みリストを表＋削除ボタン付きで表示
 st.subheader("登録済みの欲しいカード")
-for i, trade in enumerate(data["trades"]):
-    st.write(f"{trade['user']} さん → {trade['want']['genre']} / {trade['want']['name']}")
-    if st.button(f"削除 {i}"):
-        data["trades"].pop(i)
-        requests.put(URL, headers=headers, json=data)
-        st.success("削除しました！")
-        st.experimental_rerun()
+
+if data["trades"]:
+    for i, trade in enumerate(data["trades"]):
+        cols = st.columns([3, 1])  # 左に情報、右に削除ボタン
+        with cols[0]:
+            st.write(f"{trade['user']} さん → {trade['want']['genre']} / {trade['want']['name']}")
+        with cols[1]:
+            if st.button("削除", key=f"delete_{i}"):
+                data["trades"].pop(i)
+                requests.put(URL, headers=headers, json=data)
+                st.success("削除しました！")
+                st.experimental_rerun()
+else:
+    st.info("まだ登録はありません。")
