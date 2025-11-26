@@ -35,6 +35,7 @@ if st.button("登録"):
     data["trades"].append(new_trade)
     requests.put(URL, headers=headers, json=data)
     st.success("欲しいカードを登録しました！")
+    st.rerun()  # 登録後に即更新
 
 # 登録済みリストを DataFrame で表示
 st.subheader("登録済みの欲しいカード")
@@ -57,6 +58,6 @@ if data["trades"]:
                 data["trades"].pop(i)
                 requests.put(URL, headers=headers, json=data)
                 st.success("削除しました！")
-                st.experimental_rerun()
+                st.rerun()  # 削除後に即更新
 else:
     st.info("まだ登録はありません。")
